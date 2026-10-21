@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: petcare-backend
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/petcare
+      database: petcare
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.4
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: petcare-secret-key-for-jwt-token-generation-must-be-at-least-256-bits-long-for-hs256
+    expiration-ms: 86400000
+
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:4200
