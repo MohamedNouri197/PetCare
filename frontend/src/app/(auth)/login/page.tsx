@@ -7,9 +7,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
+import { seedAllDemoData } from "@/lib/mock-store";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { Mail, Lock, PawPrint, Stethoscope } from "lucide-react";
+import { Mail, Lock, PawPrint, Stethoscope, Sparkles } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -44,6 +45,26 @@ export default function LoginPage() {
         err && typeof err === "object" && "message" in err
           ? (err as { message: string }).message
           : "Identifiants incorrects";
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (role: "owner" | "vet") => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      seedAllDemoData();
+      const email = role === "vet" ? "vet@petcare.fr" : "demo@petcare.fr";
+      const password = role === "vet" ? "vet1234" : "demo1234";
+      await login(email, password);
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? (err as { message: string }).message
+          : "Erreur lors de la connexion demo";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -145,6 +166,37 @@ export default function LoginPage() {
                 Creer un compte
               </Link>
             </p>
+          </div>
+        </div>
+
+        {/* Demo Access */}
+        <div className="mt-6 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/20 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-bold text-textColor dark:text-textColor-dark">Acces demonstration</h3>
+          </div>
+          <p className="text-xs text-textColor-light dark:text-textColor-dark-light mb-4">
+            Decouvrez l&apos;application avec des donnees pre-remplies (4 animaux, dossiers medicaux, rendez-vous, etc.)
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleDemoLogin("owner")}
+              disabled={isLoading}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50"
+            >
+              <PawPrint className="w-4 h-4" />
+              Demo Proprietaire
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDemoLogin("vet")}
+              disabled={isLoading}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium bg-accent text-white hover:bg-accent/90 transition-colors disabled:opacity-50"
+            >
+              <Stethoscope className="w-4 h-4" />
+              Demo Veterinaire
+            </button>
           </div>
         </div>
       </div>

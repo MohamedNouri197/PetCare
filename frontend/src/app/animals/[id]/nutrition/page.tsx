@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
+import { mockGetAnimal, mockGetMeals, mockCreateMeal, mockDeleteMeal } from "@/lib/mock-store";
 import type { Animal, Meal } from "@/types";
 import PageContainer from "@/components/layout/PageContainer";
 import MealSchedule from "@/components/nutrition/MealSchedule";
@@ -53,7 +54,10 @@ export default function NutritionPage() {
     if (isAuthenticated && id) {
       Promise.all([api.getAnimal(id), api.getMeals(id)])
         .then(([a, m]) => { setAnimal(a); setMeals(m); })
-        .catch(() => {})
+        .catch(() => {
+          try { setAnimal(mockGetAnimal(id)); } catch { /* */ }
+          try { setMeals(mockGetMeals(id)); } catch { /* */ }
+        })
         .finally(() => setLoading(false));
     }
   }, [isAuthenticated, id]);
@@ -61,7 +65,12 @@ export default function NutritionPage() {
   const onSubmit = async (data: MealFormData) => {
     try {
       setSubmitting(true);
-      const newMeal = await api.createMeal(id, data);
+      let newMeal: Meal;
+      try {
+        newMeal = await api.createMeal(id, data);
+      } catch {
+        newMeal = mockCreateMeal(id, data);
+      }
       setMeals((prev) => [...prev, newMeal]);
       setShowModal(false);
       reset();
@@ -75,10 +84,10 @@ export default function NutritionPage() {
   const handleDelete = async (mealId: string) => {
     try {
       await api.deleteMeal(id, mealId);
-      setMeals((prev) => prev.filter((m) => m.id !== mealId));
     } catch {
-      // silently handled
+      mockDeleteMeal(id, mealId);
     }
+    setMeals((prev) => prev.filter((m) => m.id !== mealId));
   };
 
   if (authLoading || loading) return <LoadingSpinner fullScreen />;

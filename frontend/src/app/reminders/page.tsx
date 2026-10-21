@@ -8,6 +8,7 @@ import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnimals } from "@/hooks/useAnimals";
 import { api } from "@/lib/api";
+import { mockGetReminders, mockCreateReminder, mockUpdateReminder, mockDeleteReminder } from "@/lib/mock-store";
 import type { Reminder } from "@/types";
 import PageContainer from "@/components/layout/PageContainer";
 import ReminderCard from "@/components/reminders/ReminderCard";
@@ -54,7 +55,9 @@ export default function RemindersPage() {
       api
         .getReminders()
         .then(setReminders)
-        .catch(() => {})
+        .catch(() => {
+          try { setReminders(mockGetReminders()); } catch { /* */ }
+        })
         .finally(() => setLoading(false));
     }
   }, [isAuthenticated]);
@@ -62,7 +65,13 @@ export default function RemindersPage() {
   const onSubmit = async (data: ReminderFormData) => {
     try {
       setSubmitting(true);
-      const newReminder = await api.createReminder({ ...data, isActive: true });
+      const animal = animals.find((a) => a.id === data.animalId);
+      let newReminder: Reminder;
+      try {
+        newReminder = await api.createReminder({ ...data, isActive: true });
+      } catch {
+        newReminder = mockCreateReminder({ ...data, animalName: animal?.name, isActive: true });
+      }
       setReminders((prev) => [newReminder, ...prev]);
       setShowModal(false);
       reset();
@@ -76,20 +85,20 @@ export default function RemindersPage() {
   const handleToggle = async (id: string, isActive: boolean) => {
     try {
       await api.updateReminder(id, { isActive });
-      setReminders((prev) => prev.map((r) => (r.id === id ? { ...r, isActive } : r)));
     } catch {
-      // silently handled
+      mockUpdateReminder(id, { isActive });
     }
+    setReminders((prev) => prev.map((r) => (r.id === id ? { ...r, isActive } : r)));
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Supprimer ce rappel ?")) return;
     try {
       await api.deleteReminder(id);
-      setReminders((prev) => prev.filter((r) => r.id !== id));
     } catch {
-      // silently handled
+      mockDeleteReminder(id);
     }
+    setReminders((prev) => prev.filter((r) => r.id !== id));
   };
 
   if (authLoading || loading) return <LoadingSpinner fullScreen />;

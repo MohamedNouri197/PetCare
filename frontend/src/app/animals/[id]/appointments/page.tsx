@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useAnimals } from "@/hooks/useAnimals";
 import { api } from "@/lib/api";
+import { mockGetAnimal, mockGetAppointments } from "@/lib/mock-store";
 import type { Animal, Appointment } from "@/types";
 import PageContainer from "@/components/layout/PageContainer";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
@@ -35,7 +36,10 @@ export default function AnimalAppointmentsPage() {
     if (isAuthenticated && id) {
       Promise.all([api.getAnimal(id), api.getAppointments(id)])
         .then(([a, appts]) => { setAnimal(a); setAppointments(appts); })
-        .catch(() => {})
+        .catch(() => {
+          try { setAnimal(mockGetAnimal(id)); } catch { /* */ }
+          try { setAppointments(mockGetAppointments().filter((a) => a.animalId === id)); } catch { /* */ }
+        })
         .finally(() => setLoading(false));
     }
   }, [isAuthenticated, id]);

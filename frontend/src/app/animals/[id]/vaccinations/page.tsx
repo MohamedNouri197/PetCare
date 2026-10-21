@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
+import { mockGetAnimal, mockGetVaccinations, mockCreateVaccination } from "@/lib/mock-store";
 import type { Animal, Vaccination } from "@/types";
 import PageContainer from "@/components/layout/PageContainer";
 import VaccinationCard from "@/components/medical/VaccinationCard";
@@ -51,7 +52,10 @@ export default function VaccinationsPage() {
     if (isAuthenticated && id) {
       Promise.all([api.getAnimal(id), api.getVaccinations(id)])
         .then(([a, v]) => { setAnimal(a); setVaccinations(v); })
-        .catch(() => {})
+        .catch(() => {
+          try { setAnimal(mockGetAnimal(id)); } catch { /* */ }
+          try { setVaccinations(mockGetVaccinations(id)); } catch { /* */ }
+        })
         .finally(() => setLoading(false));
     }
   }, [isAuthenticated, id]);
@@ -59,7 +63,12 @@ export default function VaccinationsPage() {
   const onSubmit = async (data: VaccinationFormData) => {
     try {
       setSubmitting(true);
-      const newVacc = await api.createVaccination(id, data);
+      let newVacc: Vaccination;
+      try {
+        newVacc = await api.createVaccination(id, data);
+      } catch {
+        newVacc = mockCreateVaccination(id, { ...data, status: "up_to_date" });
+      }
       setVaccinations((prev) => [newVacc, ...prev]);
       setShowModal(false);
       reset();

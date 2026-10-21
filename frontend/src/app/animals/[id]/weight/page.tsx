@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
+import { mockGetAnimal, mockGetWeightEntries, mockCreateWeightEntry } from "@/lib/mock-store";
 import type { Animal, WeightEntry } from "@/types";
 import PageContainer from "@/components/layout/PageContainer";
 import WeightChart from "@/components/medical/WeightChart";
@@ -53,7 +54,10 @@ export default function WeightPage() {
     if (isAuthenticated && id) {
       Promise.all([api.getAnimal(id), api.getWeightEntries(id)])
         .then(([a, w]) => { setAnimal(a); setEntries(w); })
-        .catch(() => {})
+        .catch(() => {
+          try { setAnimal(mockGetAnimal(id)); } catch { /* */ }
+          try { setEntries(mockGetWeightEntries(id)); } catch { /* */ }
+        })
         .finally(() => setLoading(false));
     }
   }, [isAuthenticated, id]);
@@ -61,7 +65,12 @@ export default function WeightPage() {
   const onSubmit = async (data: WeightFormData) => {
     try {
       setSubmitting(true);
-      const newEntry = await api.createWeightEntry(id, data);
+      let newEntry: WeightEntry;
+      try {
+        newEntry = await api.createWeightEntry(id, data);
+      } catch {
+        newEntry = mockCreateWeightEntry(id, data);
+      }
       setEntries((prev) => [...prev, newEntry]);
       setShowModal(false);
       reset();

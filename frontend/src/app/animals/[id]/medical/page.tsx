@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
+import { mockGetAnimal, mockGetMedicalRecords, mockCreateMedicalRecord } from "@/lib/mock-store";
 import type { Animal, MedicalRecord } from "@/types";
 import PageContainer from "@/components/layout/PageContainer";
 import MedicalRecordCard from "@/components/medical/MedicalRecordCard";
@@ -54,7 +55,10 @@ export default function MedicalPage() {
     if (isAuthenticated && id) {
       Promise.all([api.getAnimal(id), api.getMedicalRecords(id)])
         .then(([a, r]) => { setAnimal(a); setRecords(r); })
-        .catch(() => {})
+        .catch(() => {
+          try { setAnimal(mockGetAnimal(id)); } catch { /* */ }
+          try { setRecords(mockGetMedicalRecords(id)); } catch { /* */ }
+        })
         .finally(() => setLoading(false));
     }
   }, [isAuthenticated, id]);
@@ -62,7 +66,12 @@ export default function MedicalPage() {
   const onSubmit = async (data: MedicalFormData) => {
     try {
       setSubmitting(true);
-      const newRecord = await api.createMedicalRecord(id, data);
+      let newRecord: MedicalRecord;
+      try {
+        newRecord = await api.createMedicalRecord(id, data);
+      } catch {
+        newRecord = mockCreateMedicalRecord(id, data);
+      }
       setRecords((prev) => [newRecord, ...prev]);
       setShowModal(false);
       reset();
