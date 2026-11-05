@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PetCare - Division des Modules</title>
+<style>
+  @page { size: A4; margin: 15mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #1a2e23;
+    font-size: 11px;
+    line-height: 1.5;
+    background: #fff;
+    padding: 20px;
+  }
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid #2D7A4F;
+  }
+  .header h1 {
+    font-size: 22px;
+    color: #2D7A4F;
+    margin-bottom: 4px;
+  }
+  .header p {
+    font-size: 12px;
+    color: #666;
+  }
+  .module {
+    border: 1px solid #dce8e1;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    page-break-inside: avoid;
+    overflow: hidden;
+  }
+  .module-header {
+    padding: 8px 14px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .module-header h2 { font-size: 13px; font-weight: 700; }
+  .module-header .tag {
+    font-size: 9px;
+    background: rgba(255,255,255,0.25);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .m1 .module-header { background: #2D7A4F; }
+  .m2 .module-header { background: #0369a1; }
+  .m3 .module-header { background: #7c3aed; }
+  .m4 .module-header { background: #b45309; }
+  .m5 .module-header { background: #dc2626; }
+  .m6 .module-header { background: #0891b2; }
+  .module-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .side {
+    padding: 10px 14px;
+  }
+  .side:first-child {
+    border-right: 1px solid #eee;
+  }
+  .side-title {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .side-title .dot {
+    width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+  }
+  .m1 .dot { background: #2D7A4F; }
+  .m2 .dot { background: #0369a1; }
+  .m3 .dot { background: #7c3aed; }
+  .m4 .dot { background: #b45309; }
+  .m5 .dot { background: #dc2626; }
+  .m6 .dot { background: #0891b2; }
+  .file-list { list-style: none; }
+  .file-list li {
+    font-size: 10px;
+    padding: 2px 0;
+    color: #333;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .file-list li::before {
+    content: "›";
+    color: #999;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+  .file-list .layer {
+    color: #888;
+    font-weight: 600;
+    font-size: 9px;
+    flex-shrink: 0;
+    min-width: 65px;
+  }
+  .file-list .fname {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9.5px;
+    color: #444;
+  }
+  .note {
+    font-size: 9px;
+    color: #888;
+    font-style: italic;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed #eee;
+  }
+  .summary {
+    margin-top: 16px;
+    page-break-inside: avoid;
+  }
+  .summary h3 {
+    font-size: 13px;
+    color: #2D7A4F;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #2D7A4F;
+  }
+  table.recap {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+  }
+  table.recap th {
+    background: #f0f7f3;
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 2px solid #2D7A4F;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  table.recap td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #eee;
+  }
+  table.recap tr:last-child td { border-bottom: none; }
+  .diff-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 600;
+  }
+  .diff-high { background: #fde8e8; color: #dc2626; }
+  .diff-med { background: #fef3e2; color: #b45309; }
+  .diff-std { background: #e8f5ee; color: #2D7A4F; }
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 9px;
+    color: #aaa;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+  }
+  @media print {
+    body { padding: 0; }
+    .module { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>PetCare — Division des Modules</h1>
+  <p>Repartition Front-end + Back-end pour 6 personnes</p>
+</div>
+
+<!-- MODULE 1 -->
+<div class="module m1">
+  <div class="module-header">
+    <h2>Module 1 — Authentification & Infrastructure</h2>
+    <span class="tag">Personne 1</span>
+  </div>
+  <div class="module-body">
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Backend (14 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Config</span> <span class="fname">SecurityConfig, CorsConfig, DataInitializer, application.yml, pom.xml</span></li>
+        <li><span class="layer">Security</span> <span class="fname">JwtAuthFilter, JwtTokenProvider, UserDetailsServiceImpl</span></li>
+        <li><span class="layer">Controller</span> <span class="fname">AuthController.java</span></li>
+        <li><span class="layer">Service</span> <span class="fname">AuthService.java</span></li>
+        <li><span class="layer">Entity</span> <span class="fname">User.java</span></li>
+        <li><span class="layer">Repository</span> <span class="fname">UserRepository.java</span></li>
+        <li><span class="layer">DTO</span> <span class="fname">LoginRequest, RegisterRequest, AuthResponse, UserResponse</span></li>
+        <li><span class="layer">Exception</span> <span class="fname">GlobalExceptionHandler, EmailAlreadyExists, ResourceNotFound, Unauthorized</span></li>
+      </ul>
+    </div>
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Frontend (8 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Pages</span> <span class="fname">page.tsx (landing), login, register, pricing</span></li>
+        <li><span class="layer">Layout</span> <span class="fname">Header.tsx, Navbar.tsx, PageContainer.tsx, layout.tsx</span></li>
+        <li><span class="layer">Hooks</span> <span class="fname">useAuth.ts</span></li>
+        <li><span class="layer">Lib</span> <span class="fname">api.ts, utils.ts</span></li>
+        <li><span class="layer">Types</span> <span class="fname">index.ts (types partages)</span></li>
+      </ul>
+      <div class="note">Socle du projet : Spring Security + JWT + gestion des roles (owner / veterinarian)</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 2 -->
+<div class="module m2">
+  <div class="module-header">
+    <h2>Module 2 — Gestion des Animaux + Export</h2>
+    <span class="tag">Personne 2</span>
+  </div>
+  <div class="module-body">
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Backend (6 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Controller</span> <span class="fname">AnimalController.java</span></li>
+        <li><span class="layer">Service</span> <span class="fname">AnimalService.java</span></li>
+        <li><span class="layer">Entity</span> <span class="fname">Animal.java</span></li>
+        <li><span class="layer">Repository</span> <span class="fname">AnimalRepository.java</span></li>
+        <li><span class="layer">DTO</span> <span class="fname">CreateAnimalRequest, UpdateAnimalRequest, AnimalResponse</span></li>
+        <li><span class="layer">Enums</span> <span class="fname">Species.java, Gender.java</span></li>
+      </ul>
+    </div>
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Frontend (5 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Pages</span> <span class="fname">animals/, animals/new, animals/[id]</span></li>
+        <li><span class="layer">Composants</span> <span class="fname">components/animals/QRCodeCard.tsx</span></li>
+        <li><span class="layer">Lib</span> <span class="fname">pdf-export.ts</span></li>
+      </ul>
+      <div class="note">CRUD complet + upload photo base64 + generation QR (SVG) + export PDF (iframe + print)</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 3 -->
+<div class="module m3">
+  <div class="module-header">
+    <h2>Module 3 — Suivi Medical + Vaccinations</h2>
+    <span class="tag">Personne 3</span>
+  </div>
+  <div class="module-body">
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Backend (8 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Controller</span> <span class="fname">MedicalRecordController, VaccinationController</span></li>
+        <li><span class="layer">Service</span> <span class="fname">MedicalRecordService, VaccinationService</span></li>
+        <li><span class="layer">Entity</span> <span class="fname">MedicalRecord.java, Vaccination.java</span></li>
+        <li><span class="layer">Repository</span> <span class="fname">MedicalRecordRepository, VaccinationRepository</span></li>
+        <li><span class="layer">DTO</span> <span class="fname">CreateMedicalRecordRequest, MedicalRecordResponse, CreateVaccinationRequest, VaccinationResponse</span></li>
+        <li><span class="layer">Enum</span> <span class="fname">MedicalRecordType.java</span></li>
+      </ul>
+    </div>
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Frontend (4 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Pages</span> <span class="fname">tracking/, animals/[id]/medical, animals/[id]/vaccinations</span></li>
+        <li><span class="layer">Composants</span> <span class="fname">components/medical/*</span></li>
+      </ul>
+      <div class="note">Timeline medicale + statut vaccinal (a jour / en retard / a venir) + 2 controllers</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 4 -->
+<div class="module m4">
+  <div class="module-header">
+    <h2>Module 4 — RDV + Rappels + Alimentation</h2>
+    <span class="tag">Personne 4</span>
+  </div>
+  <div class="module-body">
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Backend (12 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Controller</span> <span class="fname">AppointmentController, ReminderController, MealController</span></li>
+        <li><span class="layer">Service</span> <span class="fname">AppointmentService, ReminderService, MealService</span></li>
+        <li><span class="layer">Entity</span> <span class="fname">Appointment.java, Reminder.java, Meal.java</span></li>
+        <li><span class="layer">Repository</span> <span class="fname">AppointmentRepository, ReminderRepository, MealRepository</span></li>
+        <li><span class="layer">DTO</span> <span class="fname">CreateAppointmentRequest, AppointmentResponse, CreateReminderRequest, ReminderResponse, CreateMealRequest, MealResponse</span></li>
+        <li><span class="layer">Enums</span> <span class="fname">AppointmentStatus, AppointmentType, ReminderType, MealUnit</span></li>
+      </ul>
+    </div>
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Frontend (7 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Pages</span> <span class="fname">appointments/, animals/[id]/appointments, reminders/, animals/[id]/nutrition, vet/schedule</span></li>
+        <li><span class="layer">Composants</span> <span class="fname">components/appointments/*, components/reminders/*, components/nutrition/*</span></li>
+      </ul>
+      <div class="note">3 controllers + 3 entities + 4 enums — le module le plus riche en backend</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 5 -->
+<div class="module m5">
+  <div class="module-header">
+    <h2>Module 5 — Intelligence Artificielle + Poids</h2>
+    <span class="tag">Personne 5</span>
+  </div>
+  <div class="module-body">
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Backend (6 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Controller</span> <span class="fname">AssistantController, WeightRecordController</span></li>
+        <li><span class="layer">Service</span> <span class="fname">AssistantService, WeightRecordService</span></li>
+        <li><span class="layer">Entity</span> <span class="fname">WeightRecord.java</span></li>
+        <li><span class="layer">Repository</span> <span class="fname">WeightRecordRepository.java</span></li>
+        <li><span class="layer">DTO</span> <span class="fname">AssistantRequest, AssistantResponse, CreateWeightRecordRequest, WeightRecordResponse</span></li>
+      </ul>
+    </div>
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Frontend (6 fichiers)</div>
+      <ul class="file-list">
+        <li><span class="layer">Pages</span> <span class="fname">assistant/, ai/diagnostic/, ai/breed/, animals/[id]/weight</span></li>
+        <li><span class="layer">Lib</span> <span class="fname">ai-mock.ts (moteur IA simule)</span></li>
+        <li><span class="layer">Composants</span> <span class="fname">components/assistant/ChatBubble, SymptomSelector</span></li>
+      </ul>
+      <div class="note">Algorithme mock IA (matching mots-cles, hash deterministe) + suivi poids (predictions)</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 6 -->
+<div class="module m6">
+  <div class="module-header">
+    <h2>Module 6 — Dashboard + Communication + Services</h2>
+    <span class="tag">Personne 6</span>
+  </div>
+  <div class="module-body">
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Backend (agregation)</div>
+      <ul class="file-list">
+        <li><span class="layer">DTO</span> <span class="fname">ApiErrorResponse.java (partage)</span></li>
+        <li><span class="layer">Role</span> <span class="fname">Consomme les APIs des modules 1-5 pour agreger les donnees dans le dashboard</span></li>
+      </ul>
+    </div>
+    <div class="side">
+      <div class="side-title"><span class="dot"></span> Frontend (6 pages)</div>
+      <ul class="file-list">
+        <li><span class="layer">Pages</span> <span class="fname">dashboard/ — tableau de bord (agrege toutes les donnees)</span></li>
+        <li><span class="layer">Pages</span> <span class="fname">analytics/ — 4 graphiques SVG dessines a la main</span></li>
+        <li><span class="layer">Pages</span> <span class="fname">chat/ — messagerie WhatsApp-like</span></li>
+        <li><span class="layer">Pages</span> <span class="fname">community/ — forum (categories, likes, commentaires)</span></li>
+        <li><span class="layer">Pages</span> <span class="fname">marketplace/ — boutique (18 produits, panier)</span></li>
+        <li><span class="layer">Pages</span> <span class="fname">map/ — carte veterinaire (16 lieux, geolocation)</span></li>
+      </ul>
+      <div class="note">Le plus de pages frontend (6) — graphiques SVG et interfaces riches compensent le backend leger</div>
+    </div>
+  </div>
+</div>
+
+<!-- RESUME -->
+<div class="summary">
+  <h3>Tableau recapitulatif</h3>
+  <table class="recap">
+    <thead>
+      <tr>
+        <th>Module</th>
+        <th>Personne</th>
+        <th>Backend</th>
+        <th>Frontend</th>
+        <th>Difficulte</th>
+        <th>Comptes a tester</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>1. Auth & Infra</strong></td>
+        <td>Personne 1</td>
+        <td>14 fichiers (Security, JWT, Config)</td>
+        <td>4 pages + layout complet</td>
+        <td><span class="diff-tag diff-high">Elevee</span></td>
+        <td>Owner + Vet</td>
+      </tr>
+      <tr>
+        <td><strong>2. Animaux + Export</strong></td>
+        <td>Personne 2</td>
+        <td>6 fichiers (CRUD Animal)</td>
+        <td>3 pages + QR + PDF</td>
+        <td><span class="diff-tag diff-med">Moyenne</span></td>
+        <td>Owner</td>
+      </tr>
+      <tr>
+        <td><strong>3. Medical + Vaccins</strong></td>
+        <td>Personne 3</td>
+        <td>8 fichiers (2 controllers)</td>
+        <td>3 pages + composants</td>
+        <td><span class="diff-tag diff-med">Moyenne</span></td>
+        <td>Owner + Vet</td>
+      </tr>
+      <tr>
+        <td><strong>4. RDV + Rappels + Alim</strong></td>
+        <td>Personne 4</td>
+        <td>12 fichiers (3 controllers)</td>
+        <td>5 pages + composants</td>
+        <td><span class="diff-tag diff-med">Moyenne+</span></td>
+        <td>Owner + Vet</td>
+      </tr>
+      <tr>
+        <td><strong>5. IA + Poids</strong></td>
+        <td>Personne 5</td>
+        <td>6 fichiers (2 controllers)</td>
+        <td>4 pages + ai-mock</td>
+        <td><span class="diff-tag diff-high">Elevee</span></td>
+        <td>Owner</td>
+      </tr>
+      <tr>
+        <td><strong>6. Dashboard + Comm</strong></td>
+        <td>Personne 6</td>
+        <td>1 (agregation)</td>
+        <td>6 pages (le plus)</td>
+        <td><span class="diff-tag diff-med">Moyenne</span></td>
+        <td>Owner + Vet</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">
+  PetCare — Projet academique | Spring Boot 3.2.5 + Next.js 14 | GitHub : github.com/MohamedNouri197/PetCare
+</div>
+
+</body>
+</html>

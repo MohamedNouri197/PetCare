@@ -4,8 +4,10 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/lib/api";
-import { mockGetAnimal, mockUpdateAnimal, mockDeleteAnimal } from "@/lib/mock-store";
-import type { Animal } from "@/types";
+import { mockGetAnimal, mockUpdateAnimal, mockDeleteAnimal, mockGetMedicalRecords, mockGetVaccinations, mockGetWeightEntries } from "@/lib/mock-store";
+import type { Animal, MedicalRecord, Vaccination, WeightEntry } from "@/types";
+import { exportAnimalPDF } from "@/lib/pdf-export";
+import QRCodeCard from "@/components/animals/QRCodeCard";
 import { getSpeciesLabel, calculateAge, formatWeight } from "@/lib/utils";
 import PageContainer from "@/components/layout/PageContainer";
 import AnimalForm from "@/components/animals/AnimalForm";
@@ -25,18 +27,22 @@ import {
   Calendar,
   PawPrint,
   ChevronRight,
+  FileText,
+  QrCode,
 } from "lucide-react";
 import Link from "next/link";
 
 export default function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.push("/login");
@@ -93,6 +99,37 @@ export default function AnimalDetailPage() {
     }
   };
 
+  const handleExportPDF = async () => {
+    if (!animal) return;
+    setPdfLoading(true);
+    try {
+      let medicalRecords: MedicalRecord[] = [];
+      let vaccinations: Vaccination[] = [];
+      let weightEntries: WeightEntry[] = [];
+      try {
+        medicalRecords = await api.getMedicalRecords(animal.id);
+      } catch {
+        medicalRecords = mockGetMedicalRecords(animal.id);
+      }
+      try {
+        vaccinations = await api.getVaccinations(animal.id);
+      } catch {
+        vaccinations = mockGetVaccinations(animal.id);
+      }
+      try {
+        weightEntries = await api.getWeightEntries(animal.id);
+      } catch {
+        weightEntries = mockGetWeightEntries(animal.id);
+      }
+      exportAnimalPDF(animal, medicalRecords, vaccinations, weightEntries);
+    } catch {
+      // Fallback: export with whatever data we have
+      exportAnimalPDF(animal, [], [], []);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   if (authLoading || loading) return <LoadingSpinner fullScreen />;
   if (!isAuthenticated) return null;
 
@@ -127,6 +164,12 @@ export default function AnimalDetailPage() {
           <ArrowLeft className="w-4 h-4" /> Retour
         </Link>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleExportPDF} isLoading={pdfLoading}>
+            <FileText className="w-4 h-4 mr-1" /> Exporter PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowQRModal(true)}>
+            <QrCode className="w-4 h-4 mr-1" /> Carte QR
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
             <Edit3 className="w-4 h-4 mr-1" /> Modifier
           </Button>
@@ -233,6 +276,11 @@ export default function AnimalDetailPage() {
             photoUrl: animal.photoUrl,
           }}
         />
+      </Modal>
+
+      {/* QR Code Modal */}
+      <Modal isOpen={showQRModal} onClose={() => setShowQRModal(false)} title={`Carte d'identite - ${animal.name}`}>
+        <QRCodeCard animal={animal} ownerName={user ? `${user.firstName} ${user.lastName}` : "Proprietaire"} />
       </Modal>
     </PageContainer>
   );

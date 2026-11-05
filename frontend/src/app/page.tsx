@@ -22,6 +22,14 @@ import {
   Zap,
   Crown,
   Star,
+  Camera,
+  Scan,
+  MessageSquare,
+  Users,
+  BarChart3,
+  ShoppingBag,
+  MapPin,
+  FileText,
 } from "lucide-react";
 
 const features = [
@@ -32,9 +40,27 @@ const features = [
     color: "text-primary bg-primary/10",
   },
   {
+    icon: Camera,
+    title: "Diagnostic IA par photo",
+    description: "Uploadez une photo et notre IA analyse les symptomes visibles de votre animal.",
+    color: "text-accent bg-accent/10",
+  },
+  {
+    icon: Scan,
+    title: "Reconnaissance de race",
+    description: "Identifiez la race de votre animal par simple photo avec notre IA.",
+    color: "text-accent bg-accent/10",
+  },
+  {
+    icon: Bot,
+    title: "Assistant veterinaire IA",
+    description: "Chat intelligent pour analyser les symptomes et obtenir des conseils personnalises.",
+    color: "text-accent bg-accent/10",
+  },
+  {
     icon: Stethoscope,
-    title: "Suivi medical",
-    description: "Historique complet des consultations, traitements et ordonnances veterinaires.",
+    title: "Suivi medical complet",
+    description: "Historique des consultations, traitements, ordonnances et export PDF.",
     color: "text-primary bg-primary/10",
   },
   {
@@ -50,16 +76,34 @@ const features = [
     color: "text-primary bg-primary/10",
   },
   {
-    icon: Utensils,
-    title: "Nutrition",
-    description: "Suivez l'alimentation et les repas quotidiens de vos animaux.",
+    icon: MessageSquare,
+    title: "Messagerie veterinaire",
+    description: "Communiquez directement avec votre veterinaire par chat securise.",
+    color: "text-secondary bg-secondary/10",
+  },
+  {
+    icon: Users,
+    title: "Communaute",
+    description: "Echangez avec d'autres proprietaires, posez vos questions et partagez vos conseils.",
+    color: "text-secondary bg-secondary/10",
+  },
+  {
+    icon: BarChart3,
+    title: "Statistiques avancees",
+    description: "Graphiques d'evolution du poids, couverture vaccinale et score de sante.",
     color: "text-primary bg-primary/10",
   },
   {
-    icon: Bot,
-    title: "Assistant IA",
-    description: "Notre assistant vous aide a organiser les soins et vous indique quand consulter.",
-    color: "text-primary bg-primary/10",
+    icon: ShoppingBag,
+    title: "Boutique en ligne",
+    description: "Croquettes, jouets, produits de soin - tout ce dont votre animal a besoin.",
+    color: "text-warning bg-warning/10",
+  },
+  {
+    icon: MapPin,
+    title: "Carte des services",
+    description: "Trouvez veterinaires, parcs, animaleries et toiletteurs pres de chez vous.",
+    color: "text-warning bg-warning/10",
   },
 ];
 
