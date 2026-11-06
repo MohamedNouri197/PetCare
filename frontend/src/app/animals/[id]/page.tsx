@@ -194,7 +194,7 @@ export default function AnimalDetailPage() {
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
               <Badge variant="primary">{getSpeciesLabel(animal.species)}</Badge>
               {animal.breed && <Badge variant="default">{animal.breed}</Badge>}
-              <Badge variant={animal.gender === "male" ? "primary" : "secondary"}>
+              <Badge variant={animal.gender === "male" ? "primary" : "accent"}>
                 {animal.gender === "male" ? "Male" : "Femelle"}
               </Badge>
             </div>
