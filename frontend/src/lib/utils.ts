@@ -109,8 +109,8 @@ export function getReminderTypeLabel(type: string): string {
   return labels[type] || type;
 }
 
-export function cn(...classes: (string | number | boolean | undefined | null)[]): string {
-  return classes.filter(Boolean).join(" ");
+export function cn(...classes: unknown[]): string {
+  return classes.filter((c): c is string => typeof c === "string" && c.length > 0).join(" ");
 }
 
 export function daysUntil(dateStr: string): number {
