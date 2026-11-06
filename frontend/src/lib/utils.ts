@@ -109,7 +109,7 @@ export function getReminderTypeLabel(type: string): string {
   return labels[type] || type;
 }
 
-export function cn(...classes: (string | undefined | false | null)[]): string {
+export function cn(...classes: (string | number | boolean | undefined | null)[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
