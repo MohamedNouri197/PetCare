@@ -4,14 +4,8 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://localhost:27017/petcare
+      uri: mongodb+srv://pet:pet@ac-q6ppedi.bigisyq.mongodb.net/petcare?retryWrites=true&w=majority&tlsInsecure=true
       database: petcare
-
-de:
-  flapdoodle:
-    mongodb:
-      embedded:
-        version: 6.0.9
 
 server:
   port: 8080
