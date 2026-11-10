@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB, generateId } from "@/lib/db";
+import { isMongoEnabled, getMongoDb } from "@/lib/mongodb";
+
+function mapDoc(doc: Record<string, unknown>) {
+  const { _id, ...rest } = doc;
+  return { id: _id?.toString(), ...rest };
+}
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  if (isMongoEnabled()) {
+    const mongo = await getMongoDb();
+    const meals = await mongo.collection("meals")
+      .find({ animalId: params.id })
+      .toArray();
+    return NextResponse.json(meals.map(mapDoc));
+  }
   const db = getDB();
   const meals = db.meals
     .filter((m) => m.animalId === params.id)
@@ -11,6 +24,21 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const data = await req.json();
+  if (isMongoEnabled()) {
+    const mongo = await getMongoDb();
+    const meal = {
+      animalId: params.id,
+      foodName: data.foodName || "",
+      foodBrand: data.foodBrand || "",
+      quantity: data.quantity || 0,
+      unit: data.unit || "g",
+      scheduledTime: data.time || data.scheduledTime || "08:00",
+      notes: data.notes || null,
+      createdAt: new Date().toISOString(),
+    };
+    const result = await mongo.collection("meals").insertOne(meal);
+    return NextResponse.json({ id: result.insertedId.toString(), ...meal }, { status: 201 });
+  }
   const db = getDB();
   const meal = {
     id: generateId(),
