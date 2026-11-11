@@ -18,7 +18,8 @@ import Button from "@/components/ui/Button";
 import Modal from "@/components/ui/Modal";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
-import { Plus, Bell } from "lucide-react";
+import { Plus, Bell, BellRing } from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const reminderSchema = z.object({
   animalId: z.string().optional(),
@@ -45,6 +46,8 @@ export default function RemindersPage() {
     resolver: zodResolver(reminderSchema),
     defaultValues: { type: "other", recurrence: "none" },
   });
+
+  const { permission, requestPermission } = useNotifications(reminders);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.push("/login");
@@ -112,9 +115,21 @@ export default function RemindersPage() {
       title="Rappels"
       subtitle={`${activeReminders.length} rappel${activeReminders.length !== 1 ? "s" : ""} actif${activeReminders.length !== 1 ? "s" : ""}`}
       action={
-        <Button size="sm" onClick={() => setShowModal(true)}>
-          <Plus className="w-4 h-4 mr-1" /> Nouveau
-        </Button>
+        <div className="flex items-center gap-2">
+          {permission !== "granted" && (
+            <Button size="sm" variant="secondary" onClick={requestPermission}>
+              <BellRing className="w-4 h-4 mr-1" /> Activer les notifications
+            </Button>
+          )}
+          {permission === "granted" && (
+            <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+              <BellRing className="w-3.5 h-3.5" /> Notifications actives
+            </span>
+          )}
+          <Button size="sm" onClick={() => setShowModal(true)}>
+            <Plus className="w-4 h-4 mr-1" /> Nouveau
+          </Button>
+        </div>
       }
     >
       {reminders.length === 0 ? (

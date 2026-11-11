@@ -19,13 +19,12 @@ async function main() {
 
   const db = client.db("petcare");
 
-  // Check if already seeded
-  const userCount = await db.collection("users").countDocuments();
-  if (userCount > 0) {
-    console.log(`Database already has ${userCount} users. Skipping seed (already populated).`);
-    await client.close();
-    return;
+  // Drop and re-seed to fix ObjectId vs string issue
+  const collections = ["users", "animals", "medicalRecords", "vaccinations", "appointments", "reminders", "meals", "weightRecords"];
+  for (const c of collections) {
+    try { await db.collection(c).drop(); } catch {}
   }
+  console.log("Cleaned existing collections");
 
   // =============================================
   // UTILISATEURS
@@ -40,7 +39,7 @@ async function main() {
     { email: "vet@petcare.tn", password: "vet1234", firstName: "Dr. Sami", lastName: "Khelifi", createdAt: daysAgo(200) },
   ];
   const usersResult = await db.collection("users").insertMany(usersData);
-  const userIds = Object.values(usersResult.insertedIds);
+  const userIds = Object.values(usersResult.insertedIds).map(id => id.toString());
   const [amineId, yasmineId, khalilId, fatmaId, ahmedId, demoId, vetId] = userIds;
   console.log(`Inserted ${userIds.length} users`);
 
@@ -74,7 +73,7 @@ async function main() {
     { name: "Pirate", species: "BIRD", breed: "Calopsitte elegante", birthDate: dateAt(2023,9,1), weight: 0.09, gender: "MALE", color: "Gris avec joues orange", notes: "Siffle des melodies, tres sociable", userId: demoId, createdAt: daysAgo(100), updatedAt: daysAgo(14) },
   ];
   const animalsResult = await db.collection("animals").insertMany(animalsData);
-  const animalIds = Object.values(animalsResult.insertedIds);
+  const animalIds = Object.values(animalsResult.insertedIds).map(id => id.toString());
   const [rexId, mimiId, cocoId, neigeId, sultanId, bellaId, oscarId, rockyId, lunaId, nemoId, princesseId, simbaId, baltoId, caramelId, dragoId, maxId, minetteId, pirateId] = animalIds;
   console.log(`Inserted ${animalIds.length} animals`);
 
