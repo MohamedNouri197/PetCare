@@ -336,7 +336,7 @@ async function classifyImage(src: string): Promise<{ breed: BreedInfo; confidenc
     if (prev) prev.probability += p.probability;
     else merged.set(breed.name, { breed, probability: p.probability });
   }
-  return [...merged.values()]
+  return Array.from(merged.values())
     .sort((a, b) => b.probability - a.probability)
     .slice(0, 3)
     .map((m) => ({ breed: m.breed, confidence: Math.round(m.probability * 1000) / 10 }));
