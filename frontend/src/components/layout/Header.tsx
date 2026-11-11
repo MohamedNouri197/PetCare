@@ -88,15 +88,15 @@ export default function Header() {
               </Link>
               <Link
                 href="/login"
-                className="px-4 py-2 text-sm font-medium text-textColor dark:text-textColor-dark hover:text-primary transition-colors hidden sm:block"
+                className="px-4 py-2 text-sm font-medium text-textColor dark:text-textColor-dark hover:text-primary transition-colors"
               >
-                Se connecter
+                Connexion
               </Link>
               <Link
                 href="/register"
                 className="px-5 py-2 text-sm font-semibold text-white bg-primary rounded-full hover:bg-primary-dark transition-colors"
               >
-                Commencer
+                S&apos;inscrire
               </Link>
             </div>
           )}

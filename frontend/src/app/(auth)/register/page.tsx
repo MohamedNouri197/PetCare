@@ -47,7 +47,7 @@ export default function RegisterPage() {
       setIsLoading(true);
       setError(null);
       await registerUser(data.email, data.password, data.firstName, data.lastName, role);
-      router.push("/dashboard");
+      router.push("/animals");
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err

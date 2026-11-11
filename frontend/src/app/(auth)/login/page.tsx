@@ -39,7 +39,7 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
       await login(data.email, data.password);
-      router.push("/dashboard");
+      router.push("/animals");
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err
@@ -59,7 +59,7 @@ export default function LoginPage() {
       const email = role === "vet" ? "vet@petcare.fr" : "demo@petcare.fr";
       const password = role === "vet" ? "vet1234" : "demo1234";
       await login(email, password);
-      router.push("/dashboard");
+      router.push("/animals");
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err
