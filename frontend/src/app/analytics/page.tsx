@@ -14,6 +14,7 @@ import {
   mockGetReminders,
   mockGetAppointments,
 } from "@/lib/mock-store";
+import { api } from "@/lib/api";
 import PageContainer from "@/components/layout/PageContainer";
 import Card from "@/components/ui/Card";
 import Select from "@/components/ui/Select";
@@ -534,24 +535,51 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (animals.length === 0) return;
 
-    let records: MedicalRecord[] = [];
-    let vaccs: Vaccination[] = [];
-    let meals: Meal[] = [];
-    let weights: WeightEntry[] = [];
+    const loadAll = async () => {
+      let records: MedicalRecord[] = [];
+      let vaccs: Vaccination[] = [];
+      let meals: Meal[] = [];
+      let weights: WeightEntry[] = [];
 
-    animals.forEach((animal) => {
-      records = records.concat(mockGetMedicalRecords(animal.id));
-      vaccs = vaccs.concat(mockGetVaccinations(animal.id));
-      meals = meals.concat(mockGetMeals(animal.id));
-      weights = weights.concat(mockGetWeightEntries(animal.id));
-    });
+      await Promise.all(
+        animals.map(async (animal) => {
+          try {
+            const [r, v, m, w] = await Promise.all([
+              api.getMedicalRecords(animal.id),
+              api.getVaccinations(animal.id),
+              api.getMeals(animal.id),
+              api.getWeightEntries(animal.id),
+            ]);
+            records = records.concat(r);
+            vaccs = vaccs.concat(v);
+            meals = meals.concat(m);
+            weights = weights.concat(w);
+          } catch {
+            records = records.concat(mockGetMedicalRecords(animal.id));
+            vaccs = vaccs.concat(mockGetVaccinations(animal.id));
+            meals = meals.concat(mockGetMeals(animal.id));
+            weights = weights.concat(mockGetWeightEntries(animal.id));
+          }
+        })
+      );
 
-    setAllMedicalRecords(records);
-    setAllVaccinations(vaccs);
-    setAllMeals(meals);
-    setAllWeightEntries(weights);
-    setAllReminders(mockGetReminders(user?.id));
-    setAllAppointments(mockGetAppointments(user?.id));
+      setAllMedicalRecords(records);
+      setAllVaccinations(vaccs);
+      setAllMeals(meals);
+      setAllWeightEntries(weights);
+
+      try {
+        setAllReminders(await api.getReminders());
+      } catch {
+        setAllReminders(mockGetReminders(user?.id));
+      }
+      try {
+        setAllAppointments(await api.getAppointments());
+      } catch {
+        setAllAppointments(mockGetAppointments(user?.id));
+      }
+    };
+    loadAll();
   }, [animals, user]);
 
   // ---------------------------------------------------------------------------
