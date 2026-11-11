@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -28,11 +28,15 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<UserRole>("owner");
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) router.replace("/animals");
+  }, [isAuthenticated, authLoading, router]);
 
   const {
     register,
@@ -47,7 +51,7 @@ export default function RegisterPage() {
       setIsLoading(true);
       setError(null);
       await registerUser(data.email, data.password, data.firstName, data.lastName, role);
-      router.push("/animals");
+      router.replace("/animals");
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err

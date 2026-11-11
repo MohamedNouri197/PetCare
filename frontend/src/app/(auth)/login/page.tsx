@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -20,11 +20,15 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isVet, setIsVet] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) router.replace("/animals");
+  }, [isAuthenticated, authLoading, router]);
 
   const {
     register,
@@ -39,7 +43,7 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
       await login(data.email, data.password);
-      router.push("/animals");
+      router.replace("/animals");
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err
@@ -59,7 +63,7 @@ export default function LoginPage() {
       const email = role === "vet" ? "vet@petcare.fr" : "demo@petcare.fr";
       const password = role === "vet" ? "vet1234" : "demo1234";
       await login(email, password);
-      router.push("/animals");
+      router.replace("/animals");
     } catch (err: unknown) {
       const message =
         err && typeof err === "object" && "message" in err
