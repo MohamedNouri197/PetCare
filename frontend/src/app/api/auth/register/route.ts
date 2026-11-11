@@ -11,18 +11,37 @@ export async function POST(req: NextRequest) {
     if (existing) {
       return NextResponse.json({ message: "Cet email est deja utilise" }, { status: 409 });
     }
+    const userRole = role || "owner";
     const result = await mongo.collection("users").insertOne({
       email,
       password,
       firstName,
       lastName,
-      role: role || "owner",
+      role: userRole,
       createdAt: new Date().toISOString(),
     });
-    const token = `token_${result.insertedId}_${Date.now()}`;
+    const userId = result.insertedId.toString();
+
+    if (userRole === "veterinarian") {
+      await mongo.collection("vetProfiles").insertOne({
+        userId,
+        name: `Dr. ${firstName} ${lastName}`,
+        specialty: "Generaliste",
+        clinic: "",
+        address: "",
+        phone: "",
+        availableDays: [1, 2, 3, 4, 5],
+        slotDuration: 30,
+        workStart: "09:00",
+        workEnd: "18:00",
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    const token = `token_${userId}_${Date.now()}`;
     return NextResponse.json({
       token,
-      user: { id: result.insertedId.toString(), email, firstName, lastName, role: role || "owner" },
+      user: { id: userId, email, firstName, lastName, role: userRole },
     }, { status: 201 });
   }
 
