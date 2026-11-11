@@ -11,6 +11,7 @@ import { mockGetAnimal, mockGetWeightEntries, mockCreateWeightEntry } from "@/li
 import type { Animal, WeightEntry } from "@/types";
 import PageContainer from "@/components/layout/PageContainer";
 import WeightChart from "@/components/medical/WeightChart";
+import WeightPrediction from "@/components/medical/WeightPrediction";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
 import Button from "@/components/ui/Button";
@@ -138,6 +139,10 @@ export default function WeightPage() {
       ) : (
         <>
           <WeightChart entries={entries} />
+
+          <div className="mt-6">
+            <WeightPrediction entries={entries} />
+          </div>
 
           <h3 className="text-sm font-semibold text-textColor dark:text-textColor-dark mt-8 mb-4">Historique</h3>
           <div className="space-y-2">

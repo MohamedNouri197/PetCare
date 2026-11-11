@@ -271,33 +271,75 @@ const CAT_BREEDS: BreedInfo[] = [
   },
 ];
 
-function simpleHash(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
+// ---------------------------------------------------------------------------
+// VRAIE IA : MobileNet v2 (TensorFlow.js) - classification d'image dans le navigateur
+// Le modele est entraine sur ImageNet (~120 races de chiens, quelques types de chats).
+// ---------------------------------------------------------------------------
+const IMAGENET_TO_BREED: Record<string, string> = {
+  "labrador retriever": "Labrador Retriever",
+  "golden retriever": "Golden Retriever",
+  "german shepherd": "Berger Allemand",
+  "french bulldog": "Bouledogue Francais",
+  "beagle": "Beagle",
+  "toy poodle": "Caniche",
+  "miniature poodle": "Caniche",
+  "standard poodle": "Caniche",
+  "border collie": "Border Collie",
+  "blenheim spaniel": "Cavalier King Charles",
+  "siberian husky": "Husky Siberien",
+  "persian cat": "Persan",
+  "siamese cat": "Siamois",
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let modelPromise: Promise<any> | null = null;
+
+async function loadModel() {
+  if (!modelPromise) {
+    modelPromise = (async () => {
+      await import("@tensorflow/tfjs");
+      const mobilenet = await import("@tensorflow-models/mobilenet");
+      return mobilenet.load({ version: 2, alpha: 1.0 });
+    })();
+    modelPromise.catch(() => { modelPromise = null; });
   }
-  return Math.abs(hash);
+  return modelPromise;
 }
 
-function pickBreeds(fileName: string, animalType: "dog" | "cat"): { breed: BreedInfo; confidence: number }[] {
-  const db = animalType === "dog" ? DOG_BREEDS : CAT_BREEDS;
-  const h = simpleHash(fileName);
-  const idx1 = h % db.length;
-  let idx2 = (h * 7 + 3) % db.length;
-  while (idx2 === idx1) idx2 = (idx2 + 1) % db.length;
-  let idx3 = (h * 13 + 11) % db.length;
-  while (idx3 === idx1 || idx3 === idx2) idx3 = (idx3 + 1) % db.length;
+async function classifyImage(src: string): Promise<{ breed: BreedInfo; confidence: number }[]> {
+  const model = await loadModel();
+  const img = new window.Image();
+  img.src = src;
+  await img.decode();
+  const predictions: { className: string; probability: number }[] = await model.classify(img, 10);
 
-  const base = 78 + (h % 15);
-  const second = 5 + ((h >> 4) % 8);
-  const third = Math.max(1, 98 - base - second);
-
-  return [
-    { breed: db[idx1], confidence: base },
-    { breed: db[idx2], confidence: second },
-    { breed: db[idx3], confidence: third },
-  ];
+  const merged = new Map<string, { breed: BreedInfo; probability: number }>();
+  for (const p of predictions) {
+    const key = p.className.split(",")[0].trim().toLowerCase();
+    const mappedName = IMAGENET_TO_BREED[key];
+    const known = [...DOG_BREEDS, ...CAT_BREEDS].find((b) => b.name === mappedName);
+    const label = mappedName ?? key.charAt(0).toUpperCase() + key.slice(1);
+    const breed: BreedInfo = known ?? {
+      name: label,
+      emoji: "🐾",
+      origin: "Non renseignee",
+      size: "Non renseignee",
+      temperament: [],
+      lifeExpectancy: "Non renseignee",
+      weightRange: "Non renseigne",
+      description: `Classe detectee par MobileNet (ImageNet) : "${p.className}". La fiche detaillee de cette race n'est pas encore dans la base PetCare.`,
+      exerciseNeeds: "Consultez votre veterinaire.",
+      grooming: "Consultez votre veterinaire.",
+      dietTips: "Consultez votre veterinaire.",
+    };
+    const prev = merged.get(breed.name);
+    if (prev) prev.probability += p.probability;
+    else merged.set(breed.name, { breed, probability: p.probability });
+  }
+  return [...merged.values()]
+    .sort((a, b) => b.probability - a.probability)
+    .slice(0, 3)
+    .map((m) => ({ breed: m.breed, confidence: Math.round(m.probability * 1000) / 10 }));
 }
 
 const TRAIT_COLORS: Record<string, "primary" | "success" | "warning" | "accent" | "danger" | "default"> = {
@@ -326,6 +368,7 @@ export default function BreedRecognitionPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(0);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -358,42 +401,38 @@ export default function BreedRecognitionPage() {
     "Finalisation des resultats...",
   ];
 
-  const startAnalysis = useCallback(() => {
-    if (!imageFile) return;
+  const startAnalysis = useCallback(async () => {
+    if (!imageFile || !imagePreview) return;
     setIsAnalyzing(true);
-    setProgress(0);
+    setErrorMsg(null);
+    setProgress(10);
     setResult(null);
-    setAnalysisStep(steps[0]);
+    setAnalysisStep("Chargement du modele MobileNet (1re fois : quelques secondes)...");
 
-    const totalDuration = 2500;
-    const start = Date.now();
+    try {
+      await loadModel();
+      setProgress(55);
+      setAnalysisStep("Analyse de l'image par le reseau de neurones...");
+      const matches = await classifyImage(imagePreview);
+      setProgress(100);
+      setAnalysisStep("Terminé");
 
-    const tick = () => {
-      const elapsed = Date.now() - start;
-      const pct = Math.min((elapsed / totalDuration) * 100, 100);
-      setProgress(pct);
-      const stepIdx = Math.min(Math.floor(pct / 20), steps.length - 1);
-      setAnalysisStep(steps[stepIdx]);
-
-      if (pct < 100) {
-        requestAnimationFrame(tick);
-      } else {
-        const matches = pickBreeds(imageFile.name, animalType);
-        const analysisResult: AnalysisResult = {
-          matches,
-          timestamp: new Date().toLocaleString("fr-FR"),
-          fileName: imageFile.name,
-          animalType,
-          imageUrl: imagePreview ?? "",
-        };
-        setResult(analysisResult);
-        setHistory((prev) => [analysisResult, ...prev]);
-        setIsAnalyzing(false);
-        setSelectedMatch(0);
-      }
-    };
-
-    requestAnimationFrame(tick);
+      const analysisResult: AnalysisResult = {
+        matches,
+        timestamp: new Date().toLocaleString("fr-FR"),
+        fileName: imageFile.name,
+        animalType,
+        imageUrl: imagePreview,
+      };
+      setResult(analysisResult);
+      setHistory((prev) => [analysisResult, ...prev]);
+      setSelectedMatch(0);
+    } catch (err) {
+      console.error("Erreur MobileNet:", err);
+      setErrorMsg("Impossible d'analyser l'image (modele non charge ? verifiez votre connexion internet).");
+    } finally {
+      setIsAnalyzing(false);
+    }
   }, [imageFile, animalType, imagePreview]);
 
   const resetAnalysis = useCallback(() => {
@@ -508,6 +547,12 @@ export default function BreedRecognitionPage() {
             </span>
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={(e) => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }} className="hidden" />
+        </Card>
+      )}
+
+      {errorMsg && (
+        <Card className="mb-5 !border-red-300">
+          <p className="text-sm text-red-600">{errorMsg}</p>
         </Card>
       )}
 
@@ -684,7 +729,7 @@ export default function BreedRecognitionPage() {
           </Card>
 
           <p className="text-center text-xs text-textColor-light dark:text-textColor-dark-light pb-4">
-            Analyse generee par IA • Les resultats sont indicatifs
+            Modele MobileNet v2 (TensorFlow.js, ImageNet) • Les resultats sont indicatifs
           </p>
         </div>
       )}
