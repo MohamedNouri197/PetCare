@@ -80,7 +80,16 @@ export default function AppointmentsPage() {
       } catch {
         setAppointments(mockGetAppointments(user?.id));
       }
-      setVetProfiles(mockGetVetProfiles());
+      try {
+        const profiles = await api.getVetProfiles();
+        if (profiles.length > 0) {
+          setVetProfiles(profiles);
+        } else {
+          setVetProfiles(mockGetVetProfiles());
+        }
+      } catch {
+        setVetProfiles(mockGetVetProfiles());
+      }
       setLoading(false);
     };
     loadData();

@@ -11,6 +11,7 @@ import {
   mockToggleSlot,
   mockDeleteSlot,
 } from "@/lib/mock-store";
+import { api } from "@/lib/api";
 import type { VetProfile, VetSlot } from "@/types";
 import { formatDate, cn } from "@/lib/utils";
 import PageContainer from "@/components/layout/PageContainer";
@@ -63,35 +64,58 @@ export default function VetSchedulePage() {
 
   useEffect(() => {
     if (!isAuthenticated || !user) return;
-    const existing = mockGetVetProfile(user.id);
-    if (existing) {
-      setProfile(existing);
-      setSlots(mockGetVetSlots(user.id));
-      setProfileForm({
-        name: existing.name,
-        specialty: existing.specialty,
-        clinic: existing.clinic,
-        address: existing.address,
-        phone: existing.phone,
-        slotDuration: existing.slotDuration,
-        workStart: existing.workStart,
-        workEnd: existing.workEnd,
-        availableDays: existing.availableDays,
-      });
-    } else {
+    (async () => {
+      try {
+        const existing = await api.getVetProfile(user.id);
+        if (existing) {
+          setProfile(existing);
+          setSlots(mockGetVetSlots(user.id));
+          setProfileForm({
+            name: existing.name,
+            specialty: existing.specialty,
+            clinic: existing.clinic,
+            address: existing.address,
+            phone: existing.phone,
+            slotDuration: existing.slotDuration,
+            workStart: existing.workStart,
+            workEnd: existing.workEnd,
+            availableDays: existing.availableDays,
+          });
+          setLoading(false);
+          return;
+        }
+      } catch {
+        const local = mockGetVetProfile(user.id);
+        if (local) {
+          setProfile(local);
+          setSlots(mockGetVetSlots(user.id));
+          setProfileForm({
+            name: local.name, specialty: local.specialty, clinic: local.clinic,
+            address: local.address, phone: local.phone, slotDuration: local.slotDuration,
+            workStart: local.workStart, workEnd: local.workEnd, availableDays: local.availableDays,
+          });
+          setLoading(false);
+          return;
+        }
+      }
       setProfileForm((prev) => ({
         ...prev,
         name: `${user.firstName} ${user.lastName}`,
       }));
       setShowSettings(true);
-    }
-    setLoading(false);
+      setLoading(false);
+    })();
   }, [isAuthenticated, user]);
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!user) return;
-    const saved = mockSaveVetProfile(profileForm, user.id);
-    setProfile(saved);
+    try {
+      const saved = await api.saveVetProfile({ ...profileForm, userId: user.id });
+      setProfile(saved);
+    } catch {
+      const saved = mockSaveVetProfile(profileForm, user.id);
+      setProfile(saved);
+    }
     setShowSettings(false);
   };
 

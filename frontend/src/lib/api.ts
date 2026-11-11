@@ -189,6 +189,29 @@ class ApiClient {
     return this.request<void>(`/reminders/${id}`, { method: "DELETE" });
   }
 
+  // Vet Profiles
+  async getVetProfiles() {
+    return this.request<import("@/types").VetProfile[]>("/vet/profiles");
+  }
+
+  async getVetProfile(userId: string) {
+    return this.request<import("@/types").VetProfile>(`/vet/profiles/${userId}`);
+  }
+
+  async saveVetProfile(data: Partial<import("@/types").VetProfile>) {
+    return this.request<import("@/types").VetProfile>("/vet/profiles", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateVetProfile(id: string, data: Partial<import("@/types").VetProfile>) {
+    return this.request<import("@/types").VetProfile>(`/vet/profiles/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
   // Assistant
   async askAssistant(data: import("@/types").AssistantRequest) {
     return this.request<{ message: string }>("/assistant/ask", {
